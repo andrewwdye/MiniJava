@@ -16,8 +16,8 @@ parser code {:
   /* Override default error message routine to handle line numbers correctly */
   /* This routine is also called in the process of handling fatal errors. */
 
-  /** Report a non fatal error (or warning).  This method takes a message 
-   *  string and an additional object (to be used by specializations 
+  /** Report a non fatal error (or warning).  This method takes a message
+   *  string and an additional object (to be used by specializations
    *  implemented in subclasses).  Prints the same simple error message
    *  as the base class version, but correctly labels the line number.
    *
@@ -35,7 +35,7 @@ parser code {:
 	else System.err.println("");
       else System.err.println("");
     }
-:};  
+:};
 
 /* end of code included in generated parser
 
@@ -44,12 +44,16 @@ parser code {:
 
 /* reserved words: */
 terminal DISPLAY;
+terminal CLASS, PUBLIC, STATIC, VOID, MAIN, EXTENDS, RETURN, THIS, NEW;
+terminal STRING, INT, BOOLEAN, TRUE, FALSE;
+terminal IF, ELSE, WHILE;
+terminal PRINTLN;
 
 /* operators: */
-terminal PLUS, BECOMES;
+terminal PLUS, MINUS, BECOMES, AND, LESSTHAN, TIMES, NOT;
 
 /* delimiters: */
-terminal LPAREN, RPAREN, SEMICOLON;
+terminal LPAREN, RPAREN, SEMICOLON, LBRACE, RBRACE, LBRACKET, RBRACKET, DOT, COMMA;
 
 /* tokens with values: */
 terminal String IDENTIFIER;

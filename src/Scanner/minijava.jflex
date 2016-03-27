@@ -23,9 +23,9 @@ import Parser.sym;
 /* Code copied into the generated scanner class.  */
 /* Can be referenced in scanner action code. */
 %{
-  // Return new symbol objects with line and column numbers in the symbol 
-  // left and right fields. This abuses the original idea of having left 
-  // and right be character positions, but is   // is more useful and 
+  // Return new symbol objects with line and column numbers in the symbol
+  // left and right fields. This abuses the original idea of having left
+  // and right be character positions, but is   // is more useful and
   // follows an example in the JFlex documentation.
   private Symbol symbol(int type) {
     return new Symbol(type, yyline+1, yycolumn+1);
@@ -38,16 +38,12 @@ import Parser.sym;
   public String symbolToString(Symbol s) {
     String rep;
     switch (s.sym) {
-      case sym.BECOMES: return "BECOMES";
-      case sym.SEMICOLON: return "SEMICOLON";
-      case sym.PLUS: return "PLUS";
-      case sym.LPAREN: return "LPAREN";
-      case sym.RPAREN: return "RPAREN";
-      case sym.DISPLAY: return "DISPLAY";
       case sym.IDENTIFIER: return "ID(" + (String)s.value + ")";
       case sym.EOF: return "<EOF>";
       case sym.error: return "<ERROR>";
-      default: return "<UNEXPECTED TOKEN " + s.toString() + ">";
+      default:
+        if (s.sym < sym.terminalNames.length) { return sym.terminalNames[s.sym]; }
+        else return "<UNEXPECTED TOKEN " + s.toString() + ">";
     }
   }
 %}
@@ -57,6 +53,8 @@ letter = [a-zA-Z]
 digit = [0-9]
 eol = [\r\n]
 white = {eol}|[ \t]
+comment = "//"
+anyCharacter = [^\r\n]
 
 %%
 
@@ -64,23 +62,54 @@ white = {eol}|[ \t]
 
 /* reserved words */
 /* (put here so that reserved words take precedence over identifiers) */
-"display" { return symbol(sym.DISPLAY); }
+"class" { return symbol(sym.CLASS); }
+"public" { return symbol(sym.PUBLIC); }
+"static" { return symbol(sym.STATIC); }
+"void" { return symbol(sym.VOID); }
+"main" { return symbol(sym.MAIN); }
+"String" { return symbol(sym.STRING); }
+"extends" { return symbol(sym.EXTENDS); }
+"return" { return symbol(sym.RETURN); }
+"int" { return symbol(sym.INT); }
+"boolean" { return symbol(sym.BOOLEAN); }
+"if" { return symbol(sym.IF); }
+"else" { return symbol(sym.ELSE); }
+"while" { return symbol(sym.WHILE); }
+"System.out.println" { return symbol(sym.PRINTLN); }
+"true" { return symbol(sym.TRUE); }
+"false" { return symbol(sym.FALSE); }
+"this" { return symbol(sym.THIS); }
+"new" { return symbol(sym.NEW); }
 
 /* operators */
 "+" { return symbol(sym.PLUS); }
+"-" { return symbol(sym.MINUS); }
 "=" { return symbol(sym.BECOMES); }
+"&&" { return symbol(sym.AND); }
+"<" { return symbol(sym.LESSTHAN); }
+"*" { return symbol(sym.TIMES); }
+"!" { return symbol(sym.NOT); }
 
 /* delimiters */
 "(" { return symbol(sym.LPAREN); }
 ")" { return symbol(sym.RPAREN); }
 ";" { return symbol(sym.SEMICOLON); }
+"{" { return symbol(sym.LBRACE); }
+"}" { return symbol(sym.RBRACE); }
+"[" { return symbol(sym.LBRACKET); }
+"]" { return symbol(sym.RBRACKET); }
+"." { return symbol(sym.DOT); }
+"," { return symbol(sym.COMMA); }
 
 /* identifiers */
 {letter} ({letter}|{digit}|_)* { return symbol(sym.IDENTIFIER, yytext()); }
-
+{digit}+ { return symbol(sym.IDENTIFIER, yytext()); }
 
 /* whitespace */
 {white}+ { /* ignore whitespace */ }
+
+/* comments */
+{comment} {anyCharacter}* {eol}? { /* ignore comments */ }
 
 /* lexical errors (put last so other matches take precedence) */
 . { System.err.println(
