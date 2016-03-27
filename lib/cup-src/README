@@ -1,0 +1,9 @@
+This directory contains key source files for the CUP runtime library.
+They may be useful for understanding more about how CUP and JFlex
+represent tokens (symbols) and how the CUP parser works.  In
+particular, if you want to do more sophisticated error handling or
+other operations during parsing you may find it useful to override
+some of the parser functions.
+
+The full CUP sources can be obtained from the CUP website (see links
+on the course project page).
