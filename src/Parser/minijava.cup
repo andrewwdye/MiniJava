@@ -43,8 +43,7 @@ parser code {:
 /* Terminals (tokens returned by the scanner) */
 
 /* reserved words: */
-terminal DISPLAY;
-terminal CLASS, PUBLIC, STATIC, VOID, MAIN, EXTENDS, RETURN, THIS, NEW;
+terminal CLASS, PUBLIC, STATIC, VOID, MAIN, EXTENDS, RETURN, THIS, NEW, LENGTH;
 terminal STRING, INT, BOOLEAN, TRUE, FALSE;
 terminal IF, ELSE, WHILE;
 terminal PRINTLN;
@@ -57,49 +56,98 @@ terminal LPAREN, RPAREN, SEMICOLON, LBRACE, RBRACE, LBRACKET, RBRACKET, DOT, COM
 
 /* tokens with values: */
 terminal String IDENTIFIER;
+terminal int LITERAL;
 
 
 /* Nonterminals */
 
-nonterminal List<Statement> Program;
-nonterminal Statement Statement;
-nonterminal Assign AssignStatement;
-nonterminal Display DisplayStatement;
-nonterminal Exp Expression;
-nonterminal Identifier Identifier;
+nonterminal Program;
+nonterminal MainClass;
+nonterminal ClassList;
+nonterminal Class;
+nonterminal VarList;
+nonterminal Var;
+nonterminal MethodList;
+nonterminal Method;
+nonterminal Type;
+nonterminal StatementList;
+nonterminal Statement;
+nonterminal ExpressionList;
+nonterminal Expression;
+nonterminal IdentifierList;
+nonterminal Identifier;
+nonterminal Operator;
 
 
 /* Precedence declarations */
 
-precedence left PLUS;
+precedence left PLUS, TIMES, AND;
 
 
 /* Productions */
 
-Program ::= Statement:s
-            {: List<Statement> p = new LinkedList<Statement>();
-               p.add(s);
-               RESULT = p; :}
-        | Program:p Statement:s
-            {: p.add(s); RESULT = p; :};
+Program        ::= MainClass
+                 | MainClass ClassList;
 
-Statement   ::= AssignStatement:s
-                {: RESULT = s; :}
-            | DisplayStatement:s
-                {: RESULT = s; :};
+MainClass      ::= CLASS Identifier LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING
+                   LBRACKET RBRACKET Identifier RPAREN LBRACE Statement RBRACE RBRACE;
 
-AssignStatement ::= Identifier:id BECOMES Expression:expr SEMICOLON
-                    {: RESULT = new Assign(id, expr, idleft); :};
+ClassList      ::= Class
+                 | Class ClassList;
 
-Identifier  ::= IDENTIFIER:id
-                {: RESULT = new Identifier(id, idleft); :};
+Class          ::= CLASS Identifier EXTENDS Identifier LBRACE VarList
+                   MethodList RBRACE;
 
-DisplayStatement ::= DISPLAY:d Expression:expr SEMICOLON
-                     {: RESULT = new Display(expr, dleft); :};
+VarList        ::= Var
+                 | Var VarList;
 
-Expression    ::= IDENTIFIER:name
-            {: RESULT = new IdentifierExp(name, nameleft); :}
-        | Expression:arg1 PLUS Expression:arg2
-            {: RESULT = new Plus(arg1, arg2, arg1left); :}
-        | LPAREN Expression:expr RPAREN
-            {: RESULT = expr; :};
+Var            ::= Type Identifier SEMICOLON;
+
+MethodList     ::= Method
+                 | Method MethodList;
+
+Method         ::= PUBLIC Type Identifier LPAREN RPAREN LBRACE
+                   VarList StatementList RETURN Expression SEMICOLON RBRACE
+                 | PUBLIC Type Identifier LPAREN IdentifierList RPAREN LBRACE
+                   VarList StatementList RETURN Expression SEMICOLON RBRACE;
+
+Type           ::= INT LBRACKET RBRACKET
+                 | BOOLEAN
+                 | INT
+                 | Identifier;
+
+StatementList  ::= Statement
+                 | Statement StatementList;
+
+Statement      ::= LBRACE RBRACE
+                 | LBRACE StatementList RBRACE
+                 | IF LPAREN Expression RPAREN Statement ELSE Statement
+                 | WHILE LPAREN Expression RPAREN Statement
+                 | PRINTLN LPAREN Expression RPAREN SEMICOLON
+                 | Identifier BECOMES Expression SEMICOLON
+                 | Identifier LBRACKET Expression RBRACKET BECOMES Expression SEMICOLON;
+
+ExpressionList ::= Expression
+                 | COMMA ExpressionList;
+
+Expression     ::= Expression Operator Expression
+                 | Expression LBRACKET Expression RBRACKET
+                 | Expression DOT LENGTH
+                 | Expression DOT Identifier LPAREN RPAREN
+                 | Expression DOT Identifier LPAREN ExpressionList RPAREN
+                 | LITERAL
+                 | TRUE
+                 | FALSE
+                 | Identifier
+                 | THIS
+                 | NEW INT LBRACKET Expression RBRACKET
+                 | NEW Identifier LPAREN RPAREN
+                 | NOT Expression
+                 | LPAREN Expression RPAREN;
+
+Operator       ::= AND | LESSTHAN | PLUS | MINUS | TIMES;
+
+IdentifierList ::= Identifier
+                 | COMMA IdentifierList;
+
+Identifier     ::= IDENTIFIER;

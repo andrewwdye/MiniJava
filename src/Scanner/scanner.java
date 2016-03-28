@@ -357,6 +357,11 @@ public final class scanner implements java_cup.runtime.Scanner {
     }
   }
 
+  // Keep track of the scan errors
+  private int numScanErrors = 0;
+
+  public int num_scan_errors() { return numScanErrors; }
+
 
   /**
    * Creates a new scanner
@@ -745,6 +750,7 @@ public final class scanner implements java_cup.runtime.Scanner {
             { System.err.println(
 	"\nunexpected character in input: '" + yytext() + "' at line " +
 	(yyline+1) + " column " + (yycolumn+1));
+  numScanErrors++;
             }
           case 39: break;
           case 2: 

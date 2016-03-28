@@ -46,6 +46,11 @@ import Parser.sym;
         else return "<UNEXPECTED TOKEN " + s.toString() + ">";
     }
   }
+
+  // Keep track of the scan errors
+  private int numScanErrors = 0;
+
+  public int num_scan_errors() { return numScanErrors; }
 %}
 
 /* Helper definitions */
@@ -80,6 +85,7 @@ anyCharacter = [^\r\n]
 "false" { return symbol(sym.FALSE); }
 "this" { return symbol(sym.THIS); }
 "new" { return symbol(sym.NEW); }
+"length" { return symbol(sym.LENGTH); }
 
 /* operators */
 "+" { return symbol(sym.PLUS); }
@@ -103,7 +109,7 @@ anyCharacter = [^\r\n]
 
 /* identifiers */
 {letter} ({letter}|{digit}|_)* { return symbol(sym.IDENTIFIER, yytext()); }
-{digit}+ { return symbol(sym.IDENTIFIER, yytext()); }
+{digit}+ { return symbol(sym.LITERAL, yytext()); }
 
 /* whitespace */
 {white}+ { /* ignore whitespace */ }
@@ -115,4 +121,5 @@ anyCharacter = [^\r\n]
 . { System.err.println(
 	"\nunexpected character in input: '" + yytext() + "' at line " +
 	(yyline+1) + " column " + (yycolumn+1));
+  numScanErrors++;
   }
