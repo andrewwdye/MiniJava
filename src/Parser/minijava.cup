@@ -56,7 +56,7 @@ terminal LPAREN, RPAREN, SEMICOLON, LBRACE, RBRACE, LBRACKET, RBRACKET, DOT, COM
 
 /* tokens with values: */
 terminal String IDENTIFIER;
-terminal int LITERAL;
+terminal Integer LITERAL;
 
 
 /* Nonterminals */
@@ -73,42 +73,44 @@ nonterminal Type;
 nonterminal StatementList;
 nonterminal Statement;
 nonterminal ExpressionList;
+nonterminal AdditionalExps;
 nonterminal Expression;
 nonterminal IdentifierList;
+nonterminal AdditionalIds;
 nonterminal Identifier;
 nonterminal Operator;
 
 
 /* Precedence declarations */
 
-precedence left PLUS, TIMES, AND;
+precedence left AND;
+precedence left LESSTHAN;
+precedence left PLUS, MINUS;
+precedence left TIMES;
 
 
 /* Productions */
 
-Program        ::= MainClass
-                 | MainClass ClassList;
+Program        ::= MainClass ClassList;
 
 MainClass      ::= CLASS Identifier LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING
                    LBRACKET RBRACKET Identifier RPAREN LBRACE Statement RBRACE RBRACE;
 
-ClassList      ::= Class
+ClassList      ::=
                  | Class ClassList;
 
 Class          ::= CLASS Identifier EXTENDS Identifier LBRACE VarList
                    MethodList RBRACE;
 
-VarList        ::= Var
+VarList        ::=
                  | Var VarList;
 
 Var            ::= Type Identifier SEMICOLON;
 
-MethodList     ::= Method
+MethodList     ::=
                  | Method MethodList;
 
-Method         ::= PUBLIC Type Identifier LPAREN RPAREN LBRACE
-                   VarList StatementList RETURN Expression SEMICOLON RBRACE
-                 | PUBLIC Type Identifier LPAREN IdentifierList RPAREN LBRACE
+Method         ::= PUBLIC Type Identifier LPAREN IdentifierList RPAREN LBRACE
                    VarList StatementList RETURN Expression SEMICOLON RBRACE;
 
 Type           ::= INT LBRACKET RBRACKET
@@ -116,7 +118,7 @@ Type           ::= INT LBRACKET RBRACKET
                  | INT
                  | Identifier;
 
-StatementList  ::= Statement
+StatementList  ::=
                  | Statement StatementList;
 
 Statement      ::= LBRACE RBRACE
@@ -127,13 +129,15 @@ Statement      ::= LBRACE RBRACE
                  | Identifier BECOMES Expression SEMICOLON
                  | Identifier LBRACKET Expression RBRACKET BECOMES Expression SEMICOLON;
 
-ExpressionList ::= Expression
-                 | COMMA ExpressionList;
+ExpressionList ::=
+                 | Expression AdditionalExps;
+
+AdditionalExps ::=
+                 | COMMA Expression AdditionalExps;
 
 Expression     ::= Expression Operator Expression
                  | Expression LBRACKET Expression RBRACKET
                  | Expression DOT LENGTH
-                 | Expression DOT Identifier LPAREN RPAREN
                  | Expression DOT Identifier LPAREN ExpressionList RPAREN
                  | LITERAL
                  | TRUE
@@ -147,7 +151,10 @@ Expression     ::= Expression Operator Expression
 
 Operator       ::= AND | LESSTHAN | PLUS | MINUS | TIMES;
 
-IdentifierList ::= Identifier
-                 | COMMA IdentifierList;
+IdentifierList ::=
+                 | Type Identifier AdditionalIds;
+
+AdditionalIds  ::=
+                 | COMMA Type Identifier AdditionalIds;
 
 Identifier     ::= IDENTIFIER;
