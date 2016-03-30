@@ -87,6 +87,7 @@ precedence left AND;
 precedence left LESSTHAN;
 precedence left PLUS, MINUS;
 precedence left TIMES;
+precedence left NOT;
 
 
 /* Productions */
@@ -97,32 +98,26 @@ MainClass      ::= CLASS Identifier LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING
                    LBRACKET RBRACKET Identifier RPAREN LBRACE Statement RBRACE RBRACE;
 
 ClassList      ::=
-                 | Class ClassList;
+                 | ClassList Class;
 
 Class          ::= CLASS Identifier EXTENDS Identifier LBRACE VarList
                    MethodList RBRACE;
 
-VarList        ::=
-                 | Var VarList;
-
-Var            ::= Type Identifier SEMICOLON;
-
 MethodList     ::=
-                 | Method MethodList;
+                 | MethodList Method;
 
 Method         ::= PUBLIC Type Identifier LPAREN IdentifierList RPAREN LBRACE
                    VarList StatementList RETURN Expression SEMICOLON RBRACE;
 
-Type           ::= INT LBRACKET RBRACKET
-                 | BOOLEAN
-                 | INT
-                 | Identifier;
+VarList        ::=
+                 | VarList Var;
+
+Var            ::= Type Identifier SEMICOLON;
 
 StatementList  ::=
-                 | Statement StatementList;
+                 | StatementList Statement;
 
-Statement      ::= LBRACE RBRACE
-                 | LBRACE StatementList RBRACE
+Statement      ::= LBRACE StatementList RBRACE
                  | IF LPAREN Expression RPAREN Statement ELSE Statement
                  | WHILE LPAREN Expression RPAREN Statement
                  | PRINTLN LPAREN Expression RPAREN SEMICOLON
@@ -156,5 +151,10 @@ IdentifierList ::=
 
 AdditionalIds  ::=
                  | COMMA Type Identifier AdditionalIds;
+
+Type           ::= INT LBRACKET RBRACKET
+                 | BOOLEAN
+                 | INT
+                 | Identifier;
 
 Identifier     ::= IDENTIFIER;
