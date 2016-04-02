@@ -22,10 +22,17 @@ public class MiniJava {
                 break;
             case "-A":
                 if (args.length != 2) { throw new IllegalArgumentException("Incorrect number of arguments"); }
-                exitCode = Parse(args[1]);
+                exitCode = Parse(args[1], false);
                 break;
             case "-TA":
-                TestParser();
+                TestParser(false);
+                break;
+            case "-P":
+                if (args.length != 2) { throw new IllegalArgumentException("Incorrect number of arguments"); }
+                exitCode = Parse(args[1], true);
+                break;
+            case "-TP":
+                TestParser(true);
                 break;
             default:
                 throw new IllegalArgumentException("Unrecognized parameters '" + args[0] + "'");
@@ -46,7 +53,6 @@ public class MiniJava {
             scanner s = new scanner(new BufferedReader(new FileReader(file)));
 
             Symbol t = s.next_token();
-            // TODO: detect scan error
             while (t.sym != sym.EOF){
                 // print each token that we scan
                 if (printTokens) System.out.print(s.symbolToString(t) + " ");
@@ -77,20 +83,24 @@ public class MiniJava {
         }
     }
 
-    public static int Parse(String file)
+    public static int Parse(String file, boolean pretty)
     {
         try {
-            // create a scanner on the input file
+            // Create a scanner on the input file
             scanner s = new scanner(new BufferedReader(new FileReader(file)));
             parser p = new parser(s);
 
     	    // replace p.parse() with p.debug_parse() in next line to see trace of
     	    // parser shift/reduce actions during parse
-            Symbol root = p.debug_parse();
-            List<Statement> program = (List<Statement>)root.value;
-            for (Statement statement: program) {
-                statement.accept(new PrettyPrintVisitor());
-				System.out.print("\n");
+            Symbol root = p.parse();
+            Program program = (Program)root.value;
+
+            if (pretty)
+            {
+                // Print the decompiled AST
+                program.accept(new PrettyPrintVisitor());
+            } else {
+                // Print the AST
             }
 
             return 0;
@@ -106,12 +116,12 @@ public class MiniJava {
         }
     }
 
-    public static void TestParser()
+    public static void TestParser(boolean pretty)
     {
         for (File file : (new File("SamplePrograms/SampleMiniJavaPrograms")).listFiles())
         {
             System.out.println("Parsing " + file.getName());
-            Parse(file.getPath());
+            Parse(file.getPath(), pretty);
         }
     }
 }

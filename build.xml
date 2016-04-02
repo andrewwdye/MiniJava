@@ -110,4 +110,17 @@
     </java>
   </target>
 
+  <target name="mjp" depends="compile">
+    <java classname="MiniJava" classpath="build/classes;lib/java-cup-11b.jar" fork="true">
+      <arg value="-P"/>
+      <arg path="SamplePrograms/SampleMiniJavaPrograms/BinarySearch.java"/>
+    </java>
+  </target>
+
+  <target name="mjpt" depends="compile">
+    <java classname="MiniJava" classpath="build/classes;lib/java-cup-11b.jar" fork="true">
+      <arg value="-TP"/>
+    </java>
+  </target>
+
 </project>

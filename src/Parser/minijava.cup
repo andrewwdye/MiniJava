@@ -61,24 +61,26 @@ terminal Integer LITERAL;
 
 /* Nonterminals */
 
-nonterminal Program;
-nonterminal MainClass;
-nonterminal ClassList;
-nonterminal Class;
-nonterminal VarList;
-nonterminal Var;
-nonterminal MethodList;
-nonterminal Method;
-nonterminal Type;
-nonterminal StatementList;
-nonterminal Statement;
-nonterminal ExpressionList;
-nonterminal AdditionalExps;
-nonterminal Expression;
-nonterminal IdentifierList;
-nonterminal AdditionalIds;
-nonterminal Identifier;
-nonterminal Operator;
+nonterminal Program Program;
+nonterminal MainClass MainClass;
+nonterminal ClassDeclList ClassList;
+nonterminal ClassDecl Class;
+nonterminal VarDeclList VarList;
+nonterminal VarDecl Var;
+nonterminal MethodDeclList MethodList;
+nonterminal MethodDecl Method;
+nonterminal Type Type;
+nonterminal StatementList StatementList;
+nonterminal Statement Statement;
+nonterminal ExpList ExpressionList;
+nonterminal Exp Expression;
+nonterminal Exp OperatorExpr;
+nonterminal Exp NotExpression;
+nonterminal Exp ExtendedExpr;
+nonterminal Exp Term;
+nonterminal FormalList FormalList;
+nonterminal Formal Formal;
+nonterminal Identifier Identifier;
 
 
 /* Precedence declarations */
@@ -87,74 +89,135 @@ precedence left AND;
 precedence left LESSTHAN;
 precedence left PLUS, MINUS;
 precedence left TIMES;
-precedence left NOT;
 
 
 /* Productions */
 
-Program        ::= MainClass ClassList;
+Program         ::= MainClass:m ClassList:cl
+                      {:  RESULT = new Program(m, cl, mleft);  :};
 
-MainClass      ::= CLASS Identifier LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING
-                   LBRACKET RBRACKET Identifier RPAREN LBRACE Statement RBRACE RBRACE;
+MainClass       ::= CLASS Identifier:id1 LBRACE PUBLIC STATIC VOID MAIN LPAREN STRING
+                    LBRACKET RBRACKET Identifier:id2 RPAREN LBRACE Statement:s RBRACE RBRACE
+                      {:  RESULT = new MainClass(id1, id2, s, id1left);  :};
 
-ClassList      ::=
-                 | ClassList Class;
+ClassList       ::=
+                      {:  RESULT = new ClassDeclList(0);  :}
+                  | ClassList:cl Class:c
+                      {:  cl.add(c); RESULT = cl;  :};
 
-Class          ::= CLASS Identifier EXTENDS Identifier LBRACE VarList
-                   MethodList RBRACE;
+Class           ::= CLASS Identifier:id LBRACE VarList:v MethodList:m RBRACE
+                      {:  RESULT = new ClassDeclSimple(id, v, m, idleft);  :}
+                  | CLASS Identifier:id1 EXTENDS Identifier:id2 LBRACE VarList:v
+                    MethodList:m RBRACE
+                      {:  RESULT = new ClassDeclExtends(id1, id2, v, m, id1left);  :};
 
-MethodList     ::=
-                 | MethodList Method;
+MethodList      ::=
+                      {:  RESULT = new MethodDeclList(0);  :}
+                  | MethodList:ml Method:m
+                      {:  ml.add(m); RESULT = ml;  :};
 
-Method         ::= PUBLIC Type Identifier LPAREN IdentifierList RPAREN LBRACE
-                   VarList StatementList RETURN Expression SEMICOLON RBRACE;
+Method          ::= PUBLIC Type:t Identifier:id LPAREN FormalList:fl RPAREN LBRACE
+                    VarList:vl StatementList:sl RETURN Expression:e SEMICOLON RBRACE
+                      {:  RESULT = new MethodDecl(t, id, fl, vl, sl, e, tleft);  :};
 
-VarList        ::=
-                 | VarList Var;
+VarList         ::=
+                      {:  RESULT = new VarDeclList(0);  :}
+                  | VarList:vl Var:v
+                      {:  vl.add(v); RESULT = vl;  :};
 
-Var            ::= Type Identifier SEMICOLON;
+Var             ::= Type:t Identifier:id SEMICOLON
+                      {:  RESULT = new VarDecl(t, id, tleft);  :};
 
-StatementList  ::=
-                 | StatementList Statement;
+StatementList   ::=
+                      {:  RESULT = new StatementList(0);  :}
+                  | Statement:s StatementList:sl
+                      {:  sl.add(s); RESULT = sl;  :};
 
-Statement      ::= LBRACE StatementList RBRACE
-                 | IF LPAREN Expression RPAREN Statement ELSE Statement
-                 | WHILE LPAREN Expression RPAREN Statement
-                 | PRINTLN LPAREN Expression RPAREN SEMICOLON
-                 | Identifier BECOMES Expression SEMICOLON
-                 | Identifier LBRACKET Expression RBRACKET BECOMES Expression SEMICOLON;
+Statement       ::= LBRACE StatementList:sl RBRACE
+                      {:  RESULT = new Block(sl, slleft);  :}
+                  | IF LPAREN Expression:e RPAREN Statement:s1 ELSE Statement:s2
+                      {:  RESULT = new If(e, s1, s2, eleft);  :}
+                  | WHILE LPAREN Expression:e RPAREN Statement:s
+                      {:  RESULT = new While(e, s, eleft);  :}
+                  | PRINTLN LPAREN Expression:e RPAREN SEMICOLON
+                      {:  RESULT = new Print(e, eleft);  :}
+                  | Identifier:id BECOMES Expression:e SEMICOLON
+                      {:  RESULT = new Assign(id, e, idleft);  :}
+                  | Identifier:id LBRACKET Expression:e1 RBRACKET BECOMES Expression:e2 SEMICOLON
+                      {:  RESULT = new ArrayAssign(id, e1, e2, idleft);  :};
 
-ExpressionList ::=
-                 | Expression AdditionalExps;
+ExpressionList  ::=
+                      {:  RESULT = new ExpList(0);  :}
+                  | Expression:e
+                      {:  ExpList el = new ExpList(0); el.add(e); RESULT = el;  :}
+                  | ExpressionList:el COMMA Expression:e
+                      {:  el.add(e); RESULT = el;  :};
 
-AdditionalExps ::=
-                 | COMMA Expression AdditionalExps;
+Expression      ::= OperatorExpr:o
+                      {:  RESULT = o;  :};
 
-Expression     ::= Expression Operator Expression
-                 | Expression LBRACKET Expression RBRACKET
-                 | Expression DOT LENGTH
-                 | Expression DOT Identifier LPAREN ExpressionList RPAREN
-                 | LITERAL
-                 | TRUE
-                 | FALSE
-                 | Identifier
-                 | THIS
-                 | NEW INT LBRACKET Expression RBRACKET
-                 | NEW Identifier LPAREN RPAREN
-                 | NOT Expression
-                 | LPAREN Expression RPAREN;
+OperatorExpr    ::= NotExpression:n
+                      {:  RESULT = n;  :}
+                  | NotExpression:n AND Expression:e
+                      {:  RESULT = new And(n, e, nleft);  :}
+                  | NotExpression:n LESSTHAN Expression:e
+                      {:  RESULT = new LessThan(n, e, nleft);  :}
+                  | NotExpression:n PLUS Expression:e
+                      {:  RESULT = new Plus(n, e, nleft);  :}
+                  | NotExpression:n MINUS Expression:e
+                      {:  RESULT = new Minus(n, e, nleft);  :}
+                  | NotExpression:n TIMES Expression:e
+                      {:  RESULT = new Times(n, e, nleft);  :};
 
-Operator       ::= AND | LESSTHAN | PLUS | MINUS | TIMES;
+NotExpression   ::= ExtendedExpr:e
+                      {:  RESULT = e;  :}
+                  | NOT ExtendedExpr:e
+                      {:  RESULT = new Not(e, eleft);  :};
 
-IdentifierList ::=
-                 | Type Identifier AdditionalIds;
+ExtendedExpr    ::= Term:t
+                      {:  RESULT = t;  :}
+                  | Term:t LBRACKET Expression:e RBRACKET
+                      {:  RESULT = new ArrayLookup(t, e, tleft);  :}
+                  | Term:t DOT LENGTH
+                      {:  RESULT = new ArrayLength(t, tleft);  :}
+                  | Term:t DOT Identifier:id LPAREN ExpressionList:el RPAREN
+                      {:  RESULT = new Call(t, id, el, tleft);  :};
 
-AdditionalIds  ::=
-                 | COMMA Type Identifier AdditionalIds;
+Term            ::= LITERAL:l
+                      {:  RESULT = new IntegerLiteral(l, lleft);  :}
+                  | TRUE:t
+                      {:  RESULT = new True(tleft);  :}
+                  | FALSE:f
+                      {:  RESULT = new False(fleft);  :}
+                  | Identifier:id
+                      {:  RESULT = new IdentifierExp(id.s, idleft);  :}
+                  | THIS:t
+                      {:  RESULT = new This(tleft);  :}
+                  | NEW INT LBRACKET Expression:e RBRACKET
+                      {:  RESULT = new NewArray(e, eleft);  :}
+                  | NEW Identifier:id LPAREN RPAREN
+                      {:  RESULT = new NewObject(id, idleft);  :}
+                  | LPAREN Expression:e RPAREN
+                      {:  RESULT = e;  :};
 
-Type           ::= INT LBRACKET RBRACKET
-                 | BOOLEAN
-                 | INT
-                 | Identifier;
+FormalList      ::=
+                      {:  RESULT = new FormalList(0);  :}
+                  | Formal:f
+                      {:  FormalList fl = new FormalList(0); fl.add(f); RESULT = fl;  :}
+                  | FormalList:fl  COMMA Formal:f
+                      {:  fl.add(f); RESULT = fl;  :};
 
-Identifier     ::= IDENTIFIER;
+Formal          ::= Type:t Identifier:id
+                      {:  RESULT = new Formal(t, id, tleft);  :};
+
+Type            ::= INT:i LBRACKET RBRACKET
+                      {:  RESULT = new IntArrayType(ileft);  :}
+                  | BOOLEAN:b
+                      {:  RESULT = new BooleanType(bleft);  :}
+                  | INT:i
+                      {:  RESULT = new IntegerType(ileft);  :}
+                  | Identifier:id
+                      {:  RESULT = new IdentifierType(id.s, idleft);  :};
+
+Identifier      ::= IDENTIFIER:id
+                      {:  RESULT = new Identifier(id, idleft);  :};

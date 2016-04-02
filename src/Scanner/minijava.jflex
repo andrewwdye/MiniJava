@@ -109,7 +109,7 @@ anyCharacter = [^\r\n]
 
 /* identifiers */
 {letter} ({letter}|{digit}|_)* { return symbol(sym.IDENTIFIER, yytext()); }
-{digit}+ { return symbol(sym.LITERAL, yytext()); }
+{digit}+ { return symbol(sym.LITERAL, Integer.parseInt(yytext())); }
 
 /* whitespace */
 {white}+ { /* ignore whitespace */ }
