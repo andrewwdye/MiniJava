@@ -101,6 +101,7 @@ public class MiniJava {
                 program.accept(new PrettyPrintVisitor());
             } else {
                 // Print the AST
+                program.accept(new ASTVisitor());
             }
 
             return 0;
